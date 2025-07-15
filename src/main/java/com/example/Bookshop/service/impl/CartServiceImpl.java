@@ -31,19 +31,19 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
-    public Cart getOrBuild(String username) {
-        return cartRepository.findByUsername(username).orElseGet(() -> {
+    public Cart getOrBuild(String userId) {
+        return cartRepository.findByUserId(userId).orElseGet(() -> {
             Cart c = Cart.builder()
                     .id(UUID.randomUUID().toString())
-                    .user(userRepository.findByLogin(username).get())
+                    .user(userRepository.findById(userId).get())
                     .build();
             return cartRepository.save(c);
         });
     }
 
     @Override
-    public Cart addItem(String username, String bookId, int quantity) {
-        Cart cart = getOrBuild(username);
+    public Cart addItem(String userId, String bookId, int quantity) {
+        Cart cart = getOrBuild(userId);
 
         Book book = bookRepository
                 .findByIdAndIsActiveTrue(bookId)
@@ -70,15 +70,15 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
-    public Cart removeItem(String username, String cartItemId) {
-        Cart cart = getOrBuild(username);
+    public Cart removeItem(String userId, String cartItemId) {
+        Cart cart = getOrBuild(userId);
         cart.getItems().removeIf(i -> i.getId().equals(cartItemId));
         return cartRepository.save(cart);
     }
 
     @Override
-    public Cart updateQuantity(String username, String cartItemId, int newQuantity) {
-        Cart cart = getOrBuild(username);
+    public Cart updateQuantity(String userId, String cartItemId, int newQuantity) {
+        Cart cart = getOrBuild(userId);
         cart.getItems().stream()
                 .filter(i -> i.getId().equals(cartItemId))
                 .findFirst()
@@ -90,8 +90,8 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
-    public void deleteCart(String username) {
-        Cart cart = getOrBuild(username);
+    public void deleteCart(String userId) {
+        Cart cart = getOrBuild(userId);
         cartRepository.delete(cart);
     }
 }

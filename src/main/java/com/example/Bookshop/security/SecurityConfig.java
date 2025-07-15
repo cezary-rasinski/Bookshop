@@ -26,11 +26,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers(
-                                "/api/payments/success",
-                                "/api/payments/cancel",
-                                "/api/payments/webhook"
-                        ).permitAll()
+                        .requestMatchers("/api/checkout/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

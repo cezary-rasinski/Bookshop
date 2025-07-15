@@ -26,6 +26,12 @@ public class CartController {
         this.userService = userService;
     }
 
+    private String currentUserId(UserDetails user) {
+        return userService.findByLogin(user.getUsername())
+                .orElseThrow(() -> new RuntimeException("User not found"))
+                .getId();
+    }
+
     //Admin can view all carts
     @PreAuthorize("hasAuthority('ADMIN')")
     @GetMapping("/seeAll")
@@ -36,7 +42,8 @@ public class CartController {
     //User sees/creates his cart
     @GetMapping
     public ResponseEntity<Cart> getCart(@AuthenticationPrincipal UserDetails user) {
-        Cart cart = cartService.getOrBuild(user.getUsername());
+        String userId = currentUserId(user);
+        Cart cart = cartService.getOrBuild(userId);
         return ResponseEntity.ok(cart);
     }
 
@@ -46,8 +53,9 @@ public class CartController {
             @AuthenticationPrincipal UserDetails user,
             @RequestBody CartItemRequest dto
     ) {
+        String userId = currentUserId(user);
         Cart cart = cartService.addItem(
-                user.getUsername(),
+                userId,
                 dto.getId(),
                 dto.getQuantity()
         );
@@ -57,23 +65,26 @@ public class CartController {
     //Changing quantity of an item in cart
     @PutMapping()
     public ResponseEntity<Cart> updateItem(@RequestBody CartItemRequest dto, @AuthenticationPrincipal UserDetails user) {
+        String userId = currentUserId(user);
         Cart cart = cartService.updateQuantity(
-                user.getUsername(), dto.getId(), dto.getQuantity());
+                userId, dto.getId(), dto.getQuantity());
         return ResponseEntity.ok(cart);
     }
 
     //Deleting an item from cart
     @DeleteMapping("/items/{itemId}")
     public ResponseEntity<Cart> removeItem(@PathVariable String itemId, @AuthenticationPrincipal UserDetails user) {
+        String userId = currentUserId(user);
         Cart cart = cartService.removeItem(
-                user.getUsername(), itemId);
+                userId, itemId);
         return ResponseEntity.ok(cart);
     }
 
     //Deleting the entire cart
     @DeleteMapping
     public ResponseEntity<Void> clearCart(@AuthenticationPrincipal UserDetails user) {
-        cartService.deleteCart(user.getUsername());
+        String userId = currentUserId(user);
+        cartService.deleteCart(userId);
         return ResponseEntity.noContent().build();
     }
 }
